@@ -15,13 +15,33 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const middleware_1 = require("./middleware");
+const cors_1 = __importDefault(require("cors"));
 const db_1 = require("./db");
 const port = 3000;
 const config_1 = require("./config");
 const utils_1 = require("./utils");
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
+app.use((0, cors_1.default)());
+// ✅ (Optional) Custom CORS Configuration
+const corsOptions = {
+    origin: "https://script-assist-alpha.vercel.app/", // Allow requests only from this origin
+    methods: "GET,POST,PUT,DELETE",
+    allowedHeaders: "Content-Type,Authorization",
+};
+app.use((0, cors_1.default)(corsOptions));
 app.post('/api/v1/signup', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const email = req.body.email;
+    const password = req.body.password;
+    const existingUser = yield db_1.UserModel.findOne({
+        email
+    });
+    if (existingUser) {
+        res.status(411).json({
+            message: "user already exists"
+        });
+        return;
+    }
     try {
         const email = req.body.email;
         const password = req.body.password;
